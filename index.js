@@ -64,6 +64,10 @@ function serveStatic (root, options) {
   opts.maxage = opts.maxage || opts.maxAge || 0
   opts.root = resolve(root)
 
+  var onFileFn = (opts.onFile && typeof opts.onFile === 'function')
+    ? opts.onFile
+    : function() { /* noop */ }
+
   // construct directory listener
   var onDirectory = redirect
     ? createRedirectDirectoryListener()
@@ -105,9 +109,11 @@ function serveStatic (root, options) {
 
     // add file listener for fallthrough
     if (fallthrough) {
-      stream.on('file', function onFile () {
+      stream.on('file', function onFile (path, stat) {
         // once file is determined, always forward error
         forwardError = true
+
+        onFileFn(path, stat);
       })
     }
 
